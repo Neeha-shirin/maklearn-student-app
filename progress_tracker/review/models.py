@@ -1,14 +1,15 @@
+# review/models.py
 from django.db import models
 from django.contrib.auth.models import User
+
 
 class HelpRequest(models.Model):
     REQUEST_TYPES = [
         ("urgent_review", "Urgent Review"),
         ("doubt_session", "Doubt Session"),
         ("report_issue", "Report Issue"),
-        ("week_review", "week Review"),
-
-  ]
+        ("week_review", "Week Review"),
+    ]
 
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='help_requests')
     accepted_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='accepted_requests')

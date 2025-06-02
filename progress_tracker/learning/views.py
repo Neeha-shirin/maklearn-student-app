@@ -1,80 +1,158 @@
-# learning/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from learning.models import Module, Task, StudentTask,StudentCurrentModule,StudentBadge,Badge
+from app1.views import studentlogin as student_login
+from app1.models import dbstudent1
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from app1.models import dbstudent1
+from learning.models import Module, Task, StudentTask, StudentCurrentModule, StudentBadge, Badge
+from django.http import JsonResponse
 
-def student_login(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        user = authenticate(request, username=username, password=password)
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from learning.models import StudentTask, Task
 
-        if user and not user.is_staff:
-            login(request, user)
-            return redirect('student_dashboard')
-        return render(request, 'learning/login.html', {"error": "Invalid credentials or staff user."})
-    return render(request, 'learning/login.html')
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from learning.models import StudentTask, Task
 
-def student_logout(request):
-    logout(request)
-    return redirect('student_login')
 
-@login_required
+
 def student_dashboard(request):
-    student = request.user
+    email = request.session.get('student_email')
+    if not email:
+        return redirect('studentlogin')
 
-    # Get the current module for the student
-    student_module = StudentCurrentModule.objects.filter(student=student).first()
-    module = student_module.module if student_module else Module.objects.first()
+    try:
+        student_profile = dbstudent1.objects.get(s_email=email)
+    except dbstudent1.DoesNotExist:
+        return redirect('studentlogin')
 
-    # Get tasks for the current module
-    tasks = module.tasks.order_by('order') if module else Task.objects.none()
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        user = None
 
-    # Check task completion status
-    task_statuses = [
-        {
-            'task': task,
-            'is_completed': StudentTask.objects.filter(student=student, task=task, is_completed=True).exists()
-        }
-        for task in tasks
-    ]
+    module = None
+    task_statuses = []
+    completed = 0
+    total = 0
+    progress = 0
+    student_badges = []
+    course = student_profile.course
 
-    completed = sum(1 for t in task_statuses if t['is_completed'])
-    total = len(task_statuses)
-    progress = (completed / total) * 100 if total else 0
+    if user and course:
+        # Get or create current module record for student & course
+        student_module_obj, created = StudentCurrentModule.objects.get_or_create(student=user, course=course)
 
-    # ✅ Award all badges for weeks <= current module week
-    if module:
-        badges_to_award = Badge.objects.filter(module__week__lte=module.week)
-        for badge in badges_to_award:
-            StudentBadge.objects.get_or_create(student=student, badge=badge)
+        # If no module set or course mismatch, assign first module of the course
+        if not student_module_obj.module or student_module_obj.module.course != course:
+            first_module = Module.objects.filter(course=course).order_by('week').first()
+            student_module_obj.module = first_module
+            student_module_obj.save()
 
-    # ✅ Get all badges earned by the student
-    student_badges = StudentBadge.objects.filter(student=student).select_related('badge')
+        module = student_module_obj.module
 
-    return render(request, 'learning/student_dashboard.html', {
+        if module:
+            tasks = module.tasks.all()
+            for task in tasks:
+                completed_status = StudentTask.objects.filter(student=user, task=task, is_completed=True).exists()
+                task_statuses.append({
+                    'task': task,
+                    'is_completed': completed_status
+                })
+
+            completed = sum(1 for t in task_statuses if t['is_completed'])
+            total = len(task_statuses)
+            progress = (completed / total) * 100 if total else 0
+
+            # Award all badges for current and previous weeks in this course
+            badges_to_award = Badge.objects.filter(module__course=course, module__week__lte=module.week)
+            for badge in badges_to_award:
+                StudentBadge.objects.get_or_create(student=user, badge=badge)
+
+            student_badges = StudentBadge.objects.filter(student=user).select_related('badge')
+
+    context = {
+        'student': student_profile,
+        'user': user,
+        's_email': email,
         'module': module,
         'task_statuses': task_statuses,
         'progress': int(progress),
         'completed': completed,
         'total': total,
         'student_badges': student_badges,
-    })
+        'course': course,
+    }
 
-@login_required
+    return render(request, 'learning/student_dashboard.html', context)
+
+
+@csrf_exempt
 def complete_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    student_task, _ = StudentTask.objects.get_or_create(student=request.user, task=task)
-    student_task.is_completed = not student_task.is_completed
-    student_task.save()
-    return redirect('student_dashboard')
+    if request.method == 'POST':
+        email = request.session.get('student_email')
+        if not email:
+            return JsonResponse({'success': False, 'error': 'Authentication required'}, status=401)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+        task = get_object_or_404(Task, id=task_id)
+
+        # ✅ Ensure the task's module's course matches the student's course
+        try:
+            student_profile = dbstudent1.objects.get(s_email=email)
+        except dbstudent1.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Student profile not found'}, status=404)
+
+        student_course = student_profile.course
+        if task.module.course != student_course:
+            return JsonResponse({'success': False, 'error': 'Access denied for this task'}, status=403)
+
+        # Continue as before
+        student_task, created = StudentTask.objects.get_or_create(
+            student=user,
+            task=task,
+            defaults={'is_completed': True}
+        )
+
+        if not created:
+            student_task.is_completed = not student_task.is_completed
+            student_task.save()
+
+        all_tasks = Task.objects.filter(module=task.module).count()
+        completed_tasks = StudentTask.objects.filter(
+            student=user,
+            task__module=task.module,
+            is_completed=True
+        ).count()
+        progress = int((completed_tasks / all_tasks) * 100) if all_tasks else 0
+
+        return JsonResponse({
+            'success': True,
+            'is_completed': student_task.is_completed,
+            'progress': progress,
+            'completed': completed_tasks,
+            'total': all_tasks
+        })
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
 
 @login_required
 def submit_review(request):
     if request.method == 'POST':
-        # Save the review logic (if needed)
         return redirect('student_dashboard')
     return redirect('student_dashboard')
+
+
+

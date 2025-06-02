@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'learning',
     'staff',
     'review',
+    'app1',
 ]
 
 
@@ -80,9 +81,9 @@ WSGI_APPLICATION = 'progress_tracker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'myprojectdb',         # your DB name
-        'USER': 'postgres',            # your DB username
-        'PASSWORD': 'neeha123',   # your DB password
+        'NAME': 'mydb',         
+        'USER': 'postgres',         
+        'PASSWORD': 'neeha123',   
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -130,7 +131,25 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-LOGIN_URL = 'student_login'
+LOGIN_URL = 'studentlogin'
 LOGIN_REDIRECT_URL = 'student_dashboard'
-LOGOUT_REDIRECT_URL = 'student_login'
+LOGOUT_REDIRECT_URL = 'studentlogin'
+STAFF_LOGIN_URL = 'teacherlogin'
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "makbiglearn@gmail.com"
+EMAIL_HOST_PASSWORD = "ngrd dpau wjan ypcg"  # Must be Google App Password!
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+ADMIN_EMAIL = "makbiglearn@gmail.com"
+
+AUTHENTICATION_BACKENDS = [
+     'app1.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend'
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
