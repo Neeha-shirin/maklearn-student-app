@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'staff',
     'review',
     'app1',
+  
 ]
 
 

@@ -15,7 +15,9 @@ from .models import dbstudent1
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,logout
+
+
 
 
 def home(request):
@@ -176,3 +178,5 @@ def approve_student(request, student_id):
         messages.error(request, f"Email sending failed: {e}")
 
     return redirect('custom_admin_dashboard')  
+
+

@@ -9,5 +9,5 @@ urlpatterns = [
     path('student/<int:student_id>/progress/', views.student_module_progress, name='student_module_progress'),
     path('approve-next/<int:student_id>/', views.approve_next_week, name='approve_next_week'),
 
-    
+      path('stafflogout/', views.stafflogout, name='staff_logout'), 
 ]

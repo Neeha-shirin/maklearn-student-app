@@ -35,7 +35,8 @@ class studentregistrationform(forms.ModelForm):
             'class': 'form-control'
         })
     )
-
+    s_profilepicture = forms.ImageField(required=True)
+    
     class Meta:
         model = dbstudent1
         fields = [

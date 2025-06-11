@@ -13,12 +13,15 @@ urlpatterns = [
 
      path('', app1_views.home, name='home'),
 
-    path('learning', include('learning.urls')),
-     path('staff/', include('staff.urls')),
-     path('staff/', lambda request: redirect('staff_login')),  # ✅ This line
+    path('learning/', include('learning.urls')),
+    path('staff/', include('staff.urls')),
+    path('staff/', lambda request: redirect('staff_login')),  # ✅ This line
     path('review/', include('review.urls')),
-    path('app1/',include('app1.urls'))
-   
+    path('app1/',include('app1.urls')),
+
+   # In your main urls.py
+   path('learningdashboard/', learning_views.student_dashboard, name='learningdashboard'),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

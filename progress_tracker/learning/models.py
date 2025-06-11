@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 class Course(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
-
+    videolink = models.TextField(blank=True, null=True)
     def __str__(self):
         return self.name
 
@@ -16,6 +16,9 @@ class Module(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
     name = models.CharField(max_length=100)
     week = models.PositiveIntegerField()
+    material_pdf = models.FileField(upload_to='module_pdfs/', null=True, blank=True)  # <-- NEW FIELD
+
+
 
     class Meta:
         ordering = ['week']
@@ -82,6 +85,8 @@ class Badge(models.Model):
     description = models.TextField()
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="badges")
     image = models.ImageField(upload_to='badge_images/', null=True, blank=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="badges", null=True, blank=True)
+
 
     def __str__(self):
         return f"{self.name} (Week {self.module.week})"

@@ -5,8 +5,12 @@ from django.contrib import messages
 from review.models import HelpRequest
 from learning.models import Module, Task, StudentTask, StudentCurrentModule
 from app1.models import dbstudent1
+from app1.models import dbteacher1 
+from django.db.models import Count
 
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def staff_dashboard_view(request):
@@ -44,12 +48,27 @@ def staff_dashboard_view(request):
             'status': status,
         })
 
-    help_requests = HelpRequest.objects.select_related('student', 'accepted_by').order_by('-created_at')
+    teachers = dbteacher1.objects.all()
+
+    urgent_count = HelpRequest.objects.filter(request_type='urgent_review', is_handled=False).count()
+    doubt_count = HelpRequest.objects.filter(request_type='doubt_session', is_handled=False).count()
+    report_count = HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count()
+    week_review_count = HelpRequest.objects.filter(request_type='week_review', is_handled=False).count()
+
+    help_requests = HelpRequest.objects.select_related('student', 'accepted_by')\
+                                   .filter(is_handled=False)\
+                                   .order_by('-created_at')
 
     return render(request, 'staff/staff.html', {
         'students': students,
         'help_requests': help_requests,
+        'teachers': teachers,
+        'doubt_count': doubt_count,
+        'urgent_count': urgent_count,
+        'report_count': report_count,
+        'week_review_count': week_review_count,
     })
+
 
 
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
@@ -61,13 +80,32 @@ def accept_help_request(request, request_id):
     return redirect('staff_dashboard')
 
 
+from django.http import JsonResponse
+
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def mark_request_handled(request, request_id):
     help_request = get_object_or_404(HelpRequest, id=request_id)
-    if help_request.accepted_by == request.user:
+    if help_request.accepted_by is None or help_request.accepted_by == request.user:
         help_request.is_handled = True
         help_request.save()
+
+        # Recalculate counts
+        urgent_count = HelpRequest.objects.filter(request_type='urgent_review', is_handled=False).count()
+        doubt_count = HelpRequest.objects.filter(request_type='doubt_session', is_handled=False).count()
+        report_count = HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count()
+        week_review_count = HelpRequest.objects.filter(request_type='week_review', is_handled=False).count()
+
+        if request.is_ajax():
+            return JsonResponse({
+                'success': True,
+                'urgent_count': urgent_count,
+                'doubt_count': doubt_count,
+                'report_count': report_count,
+                'week_review_count': week_review_count,
+            })
+
     return redirect('staff_dashboard')
+
 
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def approve_next_week(request, student_id):
@@ -152,3 +190,8 @@ def student_module_progress(request, student_id):
             "modules": module_progress
         }
     })
+
+
+def stafflogout(request):
+    logout(request)
+    return redirect('teacherlogin')  # Redirects to login.html

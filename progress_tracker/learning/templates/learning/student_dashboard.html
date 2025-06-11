@@ -1,208 +1,155 @@
+
+{%load static%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Student Dashboard</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-    }
-
-    .progress-bar {
-      background: #ccc;
-      height: 10px;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-
-    .progress {
-      background: blueviolet;
-      height: 10px;
-      width: {{ progress }}%;
-      border-radius: 10px;
-    }
-
-    .task {
-      margin: 10px 0;
-      padding: 10px;
-      background: #f4f4f4;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .tick-btn {
-      padding: 5px 10px;
-      background: green;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .tick-btn.unmark {
-      background: gray;
-    }
-
-    .review-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: dodgerblue;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .logout {
-      text-align: right;
-      margin-bottom: 20px;
-    }
-
-    .logout a {
-      color: crimson;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .help-buttons button {
-      margin: 5px 5px 0 0;
-      padding: 8px 14px;
-      background-color: #444;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>makBig - Student Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-50 font-sans">
+    <!-- Navigation -->
+    <nav class="bg-indigo-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-code text-2xl mr-2"></i>
+                    <span class="text-xl font-bold">makBig</span>
+                    <div class="hidden md:block ml-10 flex space-x-4">
+                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-900">Dashboard</a>
+                        <a href="{% url 'modules' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Modules</a>
+                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Materials</a>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/chat" class="relative p-2 text-indigo-200 hover:text-white">
+                        <i class="fas fa-comment-dots text-xl"></i>
+                        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                    </a>
+                    <div class="flex items-center">
+                        <img class="h-8 w-8 rounded-full" src="{{ student.s_profilepicture.url }}" alt="">
+                        <span class="ml-2 text-sm font-medium">{{ student.s_firstname }} {{ student.s_lastname }}</span>
+                        <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button class="p-2 rounded-md text-indigo-200 hover:text-white hover:bg-indigo-600">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; justify-content: space-between; margin-bottom: 30px;">
+    <!-- Logout Link -->
+    <div class="max-w-7xl mx-auto px-4 py-4">
+        <div class="text-right">
+            <a href="{% url 'student_logout' %}" class="text-red-600 hover:underline">Logout</a>
+        </div>
 
-  <!-- Student Profile Sidebar -->
-  <div class="w-full md:w-1/4 bg-white rounded-lg shadow p-6">
-  <div class="flex flex-col items-center">
+        <div class="flex flex-wrap gap-6 justify-between mt-4">
+            <!-- Sidebar: Profile -->
+            <div class="w-full md:w-1/4 bg-white rounded-lg shadow p-6">
+                <div class="flex flex-col items-center">
+                    {% if student.s_profilepicture %}
+                        <img src="{{ student.s_profilepicture.url }}" alt="Profile Picture" class="h-24 w-24 object-cover rounded-full mb-4">
+                    {% else %}
+                        <div class="h-24 w-24 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 mb-4">
+                            No Photo
+                        </div>
+                    {% endif %}
+                    <h3 class="text-lg font-medium">{{ student.s_firstname }} {{ student.s_lastname }}</h3>
+                    <p class="text-gray-500 text-sm">Student</p>
+                    <p class="mb-2">Week {{ module.week }}</p>
 
-    <!-- ✅ PROFILE PICTURE BLOCK -->
-    {% if student.s_profilepicture %}
-      <img src="{{ student.s_profilepicture.url }}" 
-           alt="Profile Picture" 
-           style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">
-    {% else %}
-      <div style="width: 100px; height: 100px; background: #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
-        <span style="color: #555;">No Photo</span>
-      </div>
-    {% endif %}
-    <!-- ✅ END PROFILE PICTURE BLOCK -->
+                    <div class="mt-4 flex space-x-2">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Qualification: {{ student.s_qualification }}</span>
+                    </div>
+                </div>
+            </div>
 
-    <h3 class="text-lg font-medium">{{ student.s_firstname }} {{ student.s_lastname }}</h3>
-    <p class="text-gray-500 text-sm">Student</p>
-    <div class="mt-4 flex space-x-2">
-      <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">{{ student.s_status }}</span>
-      <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Qualification: {{ student.s_qualification }}</span>
+            <!-- Module Section -->
+            <div class="flex-1 max-w-3xl">
+                <h2 class="text-xl font-semibold mb-2">Welcome {{ student.s_firstname }} ({{ student.s_email }})</h2>
+                <h3 class="text-lg font-medium">Current Module: {{ module.name }}</h3>
+                <p class="mb-2">Week {{ module.week }}</p>
+
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div class="bg-green-500 h-2 rounded-full progress" style="width: {{ progress }}%;"></div>
+                </div>
+                <p class="mb-4">{{ completed }} / {{ total }} tasks completed</p>
+
+                {% for item in task_statuses %}
+                    <div class="mb-2 flex justify-between items-center">
+                        <span>{{ item.task.title }}</span>
+                        <button 
+                            class="tick-btn px-3 py-1 text-white text-sm rounded {% if item.is_completed %}bg-gray-500{% else %}bg-green-600{% endif %}"
+                            data-task-id="{{ item.task.id }}">
+                            {% if item.is_completed %}Unmark{% else %}Mark Complete{% endif %}
+                        </button>
+                    </div>
+                {% endfor %}
+
+                <div class="mt-4 flex gap-4 flex-wrap">
+                    <button onclick="sendHelpRequest('urgent_review')" class="bg-red-600 text-white px-4 py-2 rounded">Schedule Urgent Review</button>
+
+                    {% if completed == total %}
+                        <button onclick="loadReviewPage()" class="review-btn bg-indigo-600 text-white px-4 py-2 rounded">Submit Review</button>
+                    {% else %}
+                        <button onclick="loadReviewPage()" class="review-btn hidden bg-indigo-600 text-white px-4 py-2 rounded">Submit Review</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Badges -->
+            <div class="flex-1 max-w-sm bg-gray-100 border border-gray-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold mb-4">🏅 Earned Badges</h3>
+                {% if student_badges %}
+                    <ul class="space-y-3">
+                        {% for student_badge in student_badges %}
+                            <li class="flex items-center">
+                                {% if student_badge.badge.image %}
+                                    <img src="{{ student_badge.badge.image.url }}" class="h-10 w-10 object-contain rounded mr-3" alt="{{ student_badge.badge.name }}">
+                                {% endif %}
+                                <div>
+                                    <strong>{{ student_badge.badge.name }}</strong><br>
+                                    <small>Awarded for {{ student_badge.badge.module.name }}</small>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No badges earned yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Study Materials -->
+            <div class="w-full bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">📘 Study Materials</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold mb-2">{{ module.name }}</h3>
+                        <ul class="list-disc ml-5 space-y-1">
+                            <li><a href="#" class="text-blue-600 hover:underline">{{ course.description }}</a></li>
+                            <li><a href="#" class="text-blue-600 hover:underline"> {{ course.videolink }} </a></li>
+                            <li><a href="#" class="text-blue-600 hover:underline">🔗 Arrays Cheat Sheet</a></li>
+                        </ul>
+                    </div>
+                    
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Review Section -->
+        <div id="review-container" style="display:none;"></div>
+        <div id="review-section" style="display:none; margin-top:30px; width: 100%;"></div>
     </div>
-  </div>
-</div>
 
-
-  <!-- Module Section -->
-  <div style="flex: 1; min-width: 300px; max-width: 800px;">
-    <h2>Welcome {{ student.s_firstname }} ({{ student.s_email }})</h2>
-    <h2>Current Module: {{ module.name }}</h2>
-    <p>Week {{ module.week }}</p>
-
-    <div class="progress-bar">
-      <div class="progress" style="width: {{ progress }}%;"></div>
-    </div>
-    <p>{{ completed }} / {{ total }} tasks completed</p>
-
-    {% for item in task_statuses %}
-      <div class="task">
-        <span>{{ item.task.title }}</span>
-        <button 
-          class="tick-btn {% if item.is_completed %}unmark{% endif %}" 
-          data-task-id="{{ item.task.id }}" 
-          style="{% if item.is_completed %}background-color: gray;{% else %}background-color: green;{% endif %}">
-          {% if item.is_completed %}Unmark{% else %}Mark Complete{% endif %}
-        </button>
-      </div>
-    {% endfor %}
-
-    <!-- Help & Review Buttons -->
-    <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
-      <button onclick="sendHelpRequest('urgent_review')" style="background-color: red; color: white;">Schedule Urgent Review</button>
-
-      {% if completed == total %}
-        <button type="button" onclick="loadReviewPage()" class="review-btn">Submit Review</button>
-      {% else %}
-        <button type="button" onclick="loadReviewPage()" class="review-btn" style="display: none;">Submit Review</button>
-      {% endif %}
-    </div>
-  </div>
-  <div id="review-container" style="display:none;">
-  <!-- Review content will be loaded here -->
-  </div>
-
-<div id="review-section" style="display:none; margin-top:30px; width: 100%;"></div>
-
-
-  <!-- Earned Badges -->
-<div style="flex: 1 1 300px; max-width: 350px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 20px;">
-  <h3>🏅 Earned Badges</h3>
-  {% if student_badges %}
-    <ul style="list-style: none; padding: 0;">
-      {% for student_badge in student_badges %}
-        <li style="display: flex; align-items: center; margin-bottom: 12px;">
-          {% if student_badge.badge.image %}
-            <img src="{{ student_badge.badge.image.url }}" alt="{{ student_badge.badge.name }}" 
-                 style="width: 40px; height: 40px; object-fit: contain; margin-right: 10px; border-radius: 6px;">
-          {% endif %}
-          <div>
-            <strong>{{ student_badge.badge.name }}</strong><br>
-            <small>Awarded for {{ student_badge.badge.module.name }}</small>
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No badges earned yet.</p>
-  {% endif %}
-</div>
-
-  <!-- Study Materials -->
-  <div style="flex: 2 1 600px; background: white; border-radius: 10px; padding: 24px;">
-    <h2>📘 Study Materials</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-      <!-- Module Materials -->
-      <div>
-        <h3>{{ module.name }}</h3>
-        <ul>
-          <li><a href="#">📄 Variables and Scope Guide</a></li>
-          <li><a href="#">🎥 Functions Tutorial Video</a></li>
-          <li><a href="#">🔗 Arrays Cheat Sheet</a></li>
-        </ul>
-      </div>
-
-      <!-- Additional Resources -->
-      <div>
-        <h3>Additional Resources</h3>
-        <ul>
-          <li><a href="#">🌐 JavaScript Documentation</a></li>
-          <li><a href="#">💻 Interactive Code Exercises</a></li>
-          <li><a href="#">❓ FAQ for Current Module</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- JavaScript -->
-<script>
-  // -------------------- CSRF Token --------------------
+    <!-- Existing JS logic below this line -->
+    <script>
  // -------------------- CSRF Token --------------------
 function getCookie(name) {
   let cookieValue = null;
@@ -386,8 +333,8 @@ function initReviewSectionEvents() {
 
 </script>
 
+{% block content%}
 
-
+{% endblock content%}
 </body>
 </html>
-

@@ -156,3 +156,37 @@ def submit_review(request):
 
 
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def studentlogout(request):
+    logout(request)
+    return redirect('studentlogin')  # Redirects to login.html
+def module_view(request):
+    email = request.session.get('student_email')
+    if not email:
+        return redirect('studentlogin')
+
+    try:
+        student_profile = dbstudent1.objects.get(s_email=email)
+        user = User.objects.get(email=email)
+    except (dbstudent1.DoesNotExist, User.DoesNotExist):
+        return redirect('studentlogin')
+
+    course = student_profile.course
+    student_module_obj, created = StudentCurrentModule.objects.get_or_create(student=user, course=course)
+
+    # Assign module if missing or mismatched
+    if not student_module_obj.module or student_module_obj.module.course != course:
+        first_module = Module.objects.filter(course=course).order_by('week').first()
+        student_module_obj.module = first_module
+        student_module_obj.save()
+
+    module = student_module_obj.module
+
+    context = {
+        'module': module
+    }
+
+    return render(request, 'learning/module.html', context)
+

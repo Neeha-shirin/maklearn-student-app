@@ -8,7 +8,11 @@ urlpatterns = [
     path('submit-review/', views.submit_review, name='submit_review'),
     path('dashboard/', views.student_dashboard, name='student_dashboard'),
     
-    
+    path('studentlogout/', views.studentlogout, name='student_logout'),  # ✅ Keep only this
+     
+    path('modules/', views.module_view, name='modules'),
+    path('learningdashboard/', views.student_dashboard, name='learningdashboard'),
+
     
 
 ]
