@@ -7,17 +7,38 @@ from learning.models import Module, Task, StudentTask, StudentCurrentModule
 from app1.models import dbstudent1
 from app1.models import dbteacher1 
 from django.db.models import Count
+from .models import Course
+
 
 
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
-@user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def staff_dashboard_view(request):
+    selected_course_name = request.GET.get('course', '').strip()
+    search_query = request.GET.get('search', '').strip().lower()
+
     student_users = User.objects.filter(is_staff=False)
     students = []
 
     for student in student_users:
+        try:
+            student_profile = dbstudent1.objects.get(s_email=student.email)
+        except dbstudent1.DoesNotExist:
+            continue
+
+        # Filter by course name (if selected)
+        if selected_course_name and student_profile.course.name != selected_course_name:
+            continue
+
+        # Filter by search query (name, email, username)
+        if search_query:
+            full_name = f"{student.first_name} {student.last_name}".lower()
+            if search_query not in student.username.lower() and \
+               search_query not in student.email.lower() and \
+               search_query not in full_name:
+                continue
+
         student_module_obj = StudentCurrentModule.objects.filter(student=student).first()
         current_module = student_module_obj.module if student_module_obj else None
 
@@ -46,27 +67,34 @@ def staff_dashboard_view(request):
             'total': total_tasks,
             'progress': progress,
             'status': status,
+            'course': student_profile.course,
+            'student_id': student_profile.s_id,
+            'profile_picture': student_profile.s_profilepicture,
+            'student_profile': student_profile,
         })
 
-    teachers = dbteacher1.objects.all()
+    # Fetch help requests, counts, teacher, etc. as before...
 
-    urgent_count = HelpRequest.objects.filter(request_type='urgent_review', is_handled=False).count()
-    doubt_count = HelpRequest.objects.filter(request_type='doubt_session', is_handled=False).count()
-    report_count = HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count()
-    week_review_count = HelpRequest.objects.filter(request_type='week_review', is_handled=False).count()
+    help_requests = HelpRequest.objects.select_related('student', 'accepted_by').filter(is_handled=False).order_by('-created_at')
+    
+    for request_obj in help_requests:
+         try:
+            request_obj.student_profile = dbstudent1.objects.get(s_email=request_obj.student.email)
+         except dbstudent1.DoesNotExist:
+            request_obj.student_profile = None
 
-    help_requests = HelpRequest.objects.select_related('student', 'accepted_by')\
-                                   .filter(is_handled=False)\
-                                   .order_by('-created_at')
+
+
 
     return render(request, 'staff/staff.html', {
         'students': students,
-        'help_requests': help_requests,
-        'teachers': teachers,
-        'doubt_count': doubt_count,
-        'urgent_count': urgent_count,
-        'report_count': report_count,
-        'week_review_count': week_review_count,
+        'all_courses': Course.objects.all(),
+        'teacher': dbteacher1.objects.filter(t_email=request.user.username).first(),
+        'help_requests': HelpRequest.objects.select_related('student', 'accepted_by').filter(is_handled=False).order_by('-created_at'),
+        'urgent_count': HelpRequest.objects.filter(request_type='urgent_review', is_handled=False).count(),
+        'doubt_count': HelpRequest.objects.filter(request_type='doubt_session', is_handled=False).count(),
+        'report_count': HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count(),
+        'week_review_count': HelpRequest.objects.filter(request_type='week_review', is_handled=False).count(),
     })
 
 
@@ -81,7 +109,6 @@ def accept_help_request(request, request_id):
 
 
 from django.http import JsonResponse
-
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def mark_request_handled(request, request_id):
     help_request = get_object_or_404(HelpRequest, id=request_id)
@@ -95,7 +122,7 @@ def mark_request_handled(request, request_id):
         report_count = HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count()
         week_review_count = HelpRequest.objects.filter(request_type='week_review', is_handled=False).count()
 
-        if request.is_ajax():
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':  # modern is_ajax check
             return JsonResponse({
                 'success': True,
                 'urgent_count': urgent_count,
@@ -105,6 +132,7 @@ def mark_request_handled(request, request_id):
             })
 
     return redirect('staff_dashboard')
+
 
 
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
@@ -161,35 +189,41 @@ def approve_next_week(request, student_id):
 @user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def student_module_progress(request, student_id):
     student = get_object_or_404(User, id=student_id, is_staff=False)
-    modules = Module.objects.all()
-    module_progress = []
 
-    for module in modules:
-        total_tasks = module.tasks.count()
-        completed_tasks = StudentTask.objects.filter(
-            student=student,
-            task__module=module,
-            is_completed=True
-        ).count()
+    try:
+        student_profile = dbstudent1.objects.get(s_email=student.email)
+        course = student_profile.course
+    except dbstudent1.DoesNotExist:
+        messages.error(request, "Student profile or course not found.")
+        return redirect('staff_dashboard')
 
-        if completed_tasks == total_tasks and total_tasks > 0:
-            status = "Completed"
-        elif completed_tasks > 0:
-            status = "In Progress"
-        else:
-            status = "Not Started"
+    # 🔎 Get current module for the student
+    current_module_obj = StudentCurrentModule.objects.filter(student=student, course=course).first()
 
-        module_progress.append({
-            "name": module.name,
-            "status": status
+    if not current_module_obj or not current_module_obj.module:
+        messages.warning(request, "No current module assigned to this student.")
+        return redirect('staff_dashboard')
+
+    current_module = current_module_obj.module
+
+    # ✅ Get only tasks from the current module
+    tasks = Task.objects.filter(module=current_module)
+
+    task_progress = []
+    for task in tasks:
+        is_completed = StudentTask.objects.filter(student=student, task=task, is_completed=True).exists()
+        task_progress.append({
+            'task_title': task.title,
+            'completed': is_completed,
         })
 
     return render(request, 'staff/student_module_progress.html', {
-        "progress": {
-            "student_id": student.id,
-            "modules": module_progress
-        }
+        'student': student,
+        'current_module': current_module,
+        'task_progress': task_progress,
     })
+
+
 
 
 def stafflogout(request):

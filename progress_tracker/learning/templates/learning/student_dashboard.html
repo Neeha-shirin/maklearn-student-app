@@ -3,6 +3,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <style>
+     html {
+        scroll-behavior: smooth;
+     }
+  </style>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>makBig - Student Dashboard</title>
@@ -20,7 +26,8 @@
                     <div class="hidden md:block ml-10 flex space-x-4">
                         <a href="#" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-900">Dashboard</a>
                         <a href="{% url 'modules' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Modules</a>
-                        <a href="#" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Materials</a>
+                        <a href="#study-materials" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Materials</a>
+
                     </div>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
@@ -30,8 +37,7 @@
                     </a>
                     <div class="flex items-center">
                         <img class="h-8 w-8 rounded-full" src="{{ student.s_profilepicture.url }}" alt="">
-                        <span class="ml-2 text-sm font-medium">{{ student.s_firstname }} {{ student.s_lastname }}</span>
-                        <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        <span class="ml-2 text-sm font-medium">{{  student.s_email }} </span>
                     </div>
                 </div>
                 <div class="md:hidden">
@@ -46,7 +52,8 @@
     <!-- Logout Link -->
     <div class="max-w-7xl mx-auto px-4 py-4">
         <div class="text-right">
-            <a href="{% url 'student_logout' %}" class="text-red-600 hover:underline">Logout</a>
+          <a href="{% url 'student_logout' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">  Logout</a>
+
         </div>
 
         <div class="flex flex-wrap gap-6 justify-between mt-4">
@@ -60,9 +67,18 @@
                             No Photo
                         </div>
                     {% endif %}
-                    <h3 class="text-lg font-medium">{{ student.s_firstname }} {{ student.s_lastname }}</h3>
-                    <p class="text-gray-500 text-sm">Student</p>
-                    <p class="mb-2">Week {{ module.week }}</p>
+                    <div class="text-center space-y-1">
+                       <h3 class="text-xl font-bold text-gray-800">
+                         {{ student.s_firstname }} {{ student.s_lastname }}
+                        </h3>
+                       
+                        <p class="text-sm font-bold text-indigo-700">
+                          {{ course.name }}
+                                 </p>
+                    </div>
+
+
+
 
                     <div class="mt-4 flex space-x-2">
                         <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Qualification: {{ student.s_qualification }}</span>
@@ -72,7 +88,7 @@
 
             <!-- Module Section -->
             <div class="flex-1 max-w-3xl">
-                <h2 class="text-xl font-semibold mb-2">Welcome {{ student.s_firstname }} ({{ student.s_email }})</h2>
+                <h2 class="text-xl font-semibold mb-2">Welcome {{ student.s_firstname }}   {{ student.s_lastname }}</h2>
                 <h3 class="text-lg font-medium">Current Module: {{ module.name }}</h3>
                 <p class="mb-2">Week {{ module.week }}</p>
 
@@ -125,17 +141,32 @@
                 {% endif %}
             </div>
 
+            
             <!-- Study Materials -->
-            <div class="w-full bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-semibold mb-4">📘 Study Materials</h2>
+              <div id="study-materials" class="w-full bg-white rounded-lg shadow p-6">
+                 <h2 class="text-xl font-semibold mb-4">📘 Study Materials</h2>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h3 class="font-semibold mb-2">{{ module.name }}</h3>
-                        <ul class="list-disc ml-5 space-y-1">
-                            <li><a href="#" class="text-blue-600 hover:underline">{{ course.description }}</a></li>
-                            <li><a href="#" class="text-blue-600 hover:underline"> {{ course.videolink }} </a></li>
-                            <li><a href="#" class="text-blue-600 hover:underline">🔗 Arrays Cheat Sheet</a></li>
-                        </ul>
+                        <h3 class="font-semibold mb-2">{{ course.name }}</h3>
+                          <ul class="list-none ml-2 space-y-2">
+    <!-- Course Description Link with Link Icon -->
+    <li class="flex items-center space-x-2">
+        <i class="fas fa-link text-gray-600"></i>
+        <a href="{{ course.description }}" target="_blank" class="text-blue-600 hover:underline">
+            {{ course.description }}
+        </a>
+    </li>
+
+    <!-- YouTube Video Link with YouTube Icon -->
+    <li class="flex items-center space-x-2">
+        <i class="fab fa-youtube text-red-600"></i>
+        <a href="{{ course.videolink }}" target="_blank" class="text-blue-600 hover:underline">
+            {{ course.videolink }}
+        </a>
+    </li>
+</ul>
+
                     </div>
                     
                 </div>

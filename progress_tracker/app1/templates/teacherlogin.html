@@ -1,91 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teacher Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+<body class="bg-gradient-to-br from-indigo-100 to-blue-200 flex justify-center items-center min-h-screen">
 
-<!-- Login Form Container -->
-<div id="login-form" class="p-6 bg-white rounded-lg shadow-md w-full max-w-md">
-    <h2 class="text-2xl font-bold text-center text-indigo-600 mb-6">ACADEMIC COORDINATOR LOGIN</h2>
+  <!-- Login Form Container -->
+  <div id="login-form" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+    <h2 class="text-3xl font-extrabold text-center text-indigo-700 mb-6">
+      Academic Coordinator Login
+    </h2>
 
     <!-- Login Form -->
     <form method="POST" class="space-y-6">
-        {% csrf_token %}
+      {% csrf_token %}
 
-        <!-- Teacher Email Field -->
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-medium mb-2" for="login-email">
-                {{ form.t_email.label }}
-            </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fas fa-envelope text-gray-400"></i>
-                </div>
-                <!-- Email input with Tailwind CSS -->
-                {{ form.t_email }}
-            </div>
-        </div>
+      <!-- Email Field -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1" for="login-email">
+          {{ form.t_email.label }}
+        </label>
+        {{ form.t_email }}
+      </div>
 
-        <!-- Teacher Password Field -->
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-medium mb-2" for="login-password">
-                {{ form.t_password.label }}
-            </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fas fa-lock text-gray-400"></i>
-                </div>
-                <!-- Password input with Tailwind CSS -->
-                {{ form.t_password }}
-                <!-- Password visibility toggle button -->
-                <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-500">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-            <div class="mt-2 flex justify-end">
-                <a href="#" class="text-sm text-indigo-600 hover:text-indigo-800">Forgot password?</a>
-            </div>
-        </div>
+      <!-- Password Field -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1" for="login-password">
+          {{ form.t_password.label }}
+        </label>
+        {{ form.t_password }}
+        
+      </div>
 
-        <!-- Submit Button -->
-        <div>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
-                Sign In
-            </button>
-        </div>
+      <!-- Submit Button -->
+      <div>
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200">
+          Sign In
+        </button>
+      </div>
     </form>
 
     <!-- Error Messages -->
     {% for message in messages %}
-        <p class="text-red-500 text-sm mt-2">{{ message }}</p>
+      <p class="text-red-500 text-sm mt-3">{{ message }}</p>
     {% endfor %}
 
     <!-- Divider -->
     <div class="mt-6">
-        <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-gray-300"></div>
-            </div>
-        </div>
+      <div class="flex items-center">
+        <div class="flex-grow border-t border-gray-300"></div>
+      </div>
     </div>
-</div>
-
-<!-- Password Toggle JavaScript -->
-<script>
-    document.querySelector('.fa-eye').addEventListener('click', function() {
-        const passwordField = document.querySelector('input[name="t_password"]');
-        if (passwordField.type === "password") {
-            passwordField.type = "text";
-        } else {
-            passwordField.type = "password";
-        }
-    });
-</script>
+  </div>
 
 </body>
 </html>
