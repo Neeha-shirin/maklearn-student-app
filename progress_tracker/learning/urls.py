@@ -12,6 +12,8 @@ urlpatterns = [
      
     path('modules/', views.module_view, name='modules'),
     path('learningdashboard/', views.student_dashboard, name='learningdashboard'),
+    path('chat/', views.chat_home, name='chat_home'),
+
 
     
 

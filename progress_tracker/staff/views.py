@@ -8,12 +8,13 @@ from app1.models import dbstudent1
 from app1.models import dbteacher1 
 from django.db.models import Count
 from .models import Course
+from django.http import JsonResponse
 
 
 
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-
+@user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def staff_dashboard_view(request):
     selected_course_name = request.GET.get('course', '').strip()
     search_query = request.GET.get('search', '').strip().lower()
@@ -90,7 +91,7 @@ def staff_dashboard_view(request):
         'students': students,
         'all_courses': Course.objects.all(),
         'teacher': dbteacher1.objects.filter(t_email=request.user.username).first(),
-        'help_requests': HelpRequest.objects.select_related('student', 'accepted_by').filter(is_handled=False).order_by('-created_at'),
+        'help_requests': help_requests,
         'urgent_count': HelpRequest.objects.filter(request_type='urgent_review', is_handled=False).count(),
         'doubt_count': HelpRequest.objects.filter(request_type='doubt_session', is_handled=False).count(),
         'report_count': HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count(),
@@ -99,17 +100,16 @@ def staff_dashboard_view(request):
 
 
 
-@user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def accept_help_request(request, request_id):
     help_request = get_object_or_404(HelpRequest, id=request_id)
     if not help_request.accepted_by:
         help_request.accepted_by = request.user
+        help_request.is_handled=True
         help_request.save()
     return redirect('staff_dashboard')
 
 
-from django.http import JsonResponse
-@user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
+
 def mark_request_handled(request, request_id):
     help_request = get_object_or_404(HelpRequest, id=request_id)
     if help_request.accepted_by is None or help_request.accepted_by == request.user:
@@ -135,7 +135,6 @@ def mark_request_handled(request, request_id):
 
 
 
-@user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def approve_next_week(request, student_id):
     student = get_object_or_404(User, id=student_id, is_staff=False)
 
@@ -186,7 +185,6 @@ def approve_next_week(request, student_id):
     return redirect('staff_dashboard')
 
 
-@user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='/app1/teacherlogin/')
 def student_module_progress(request, student_id):
     student = get_object_or_404(User, id=student_id, is_staff=False)
 

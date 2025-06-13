@@ -203,10 +203,21 @@
     <!-- Help Requests -->
     <div id="help-requests" class="bg-white rounded-lg shadow p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800">Pending Help Request</h2>
-      
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+        <div class="flex gap-2">
+            <select id="helpCourseFilter" class="border rounded px-3 py-1 text-sm">
+                  <option value="">Filter by Course</option>
+                     {% for course in all_courses %}
+                        <option value="{{ course.name|lower }}">{{ course.name }}</option>
+                     {% endfor %}
+            </select>
+                <input type="text" id="helpSearch" placeholder="Search requests..." class="border rounded px-3 py-1 text-sm" />
+        </div>
+      </div>
+
       <div class="space-y-4">
         {% for request in help_requests %}
-        <div class="border rounded-lg p-4 hover:border-green-300 transition">
+        <div class="border rounded-lg p-4 hover:border-green-300 transition help-request-item"data-student="{{ request.student_profile.s_firstname|default:''|lower }} {{ request.student_profile.s_lastname|default:''|lower }}"data-course="{{ request.student_profile.course.name|default:''|lower }}">
           <div class="flex items-start">
             <div class="h-10 w-10 rounded-full bg-indigo-100 overflow-hidden">
               {% if request.student_profile and request.student_profile.s_profilepicture %}
@@ -219,7 +230,7 @@
             </div>
             <div class="ml-4 flex-1">
               <p class="text-lg font-semibold text-gray-900">{{ request.student_profile.s_firstname }} {{ request.student_profile.s_lastname }}</p>
-              <p class="text-sm text-gray-600">{{ request.student_profile.course.name }}</p>
+              <p class="text-sm font-semibold text-gray-600">{{ request.student_profile.course.name }}</p>
               <p class="text-sm text-gray-600">ID: {{ request.student.id }}</p>
               <p class="text-sm text-gray-600">{{ request.get_request_type_display }} Request</p>
               <div class="mt-2 text-sm text-gray-500">
@@ -305,5 +316,31 @@
       courseFilter.addEventListener("change", filterRows);
     });
   </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const helpItems = document.querySelectorAll(".help-request-item");
+    const helpSearch = document.getElementById("helpSearch");
+    const helpCourseFilter = document.getElementById("helpCourseFilter");
+
+    function filterHelpRequests() {
+      const searchTerm = helpSearch.value.toLowerCase();
+      const selectedCourse = helpCourseFilter.value.toLowerCase();
+
+      helpItems.forEach(item => {
+        const studentName = item.getAttribute("data-student");
+        const course = item.getAttribute("data-course");
+
+        const matchesSearch = studentName.includes(searchTerm);
+        const matchesCourse = !selectedCourse || course === selectedCourse;
+
+        item.style.display = matchesSearch && matchesCourse ? "" : "none";
+      });
+    }
+
+    helpSearch.addEventListener("input", filterHelpRequests);
+    helpCourseFilter.addEventListener("change", filterHelpRequests);
+  });
+</script>
+
 </body>
 </html>

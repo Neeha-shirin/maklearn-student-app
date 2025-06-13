@@ -6,6 +6,7 @@ from learning import views as learning_views
 from app1 import views as app1_views 
 from django.conf import settings
 from django.conf.urls.static import static
+from learning.views import chat_home
 
 
 urlpatterns = [
@@ -21,6 +22,9 @@ urlpatterns = [
 
    # In your main urls.py
    path('learningdashboard/', learning_views.student_dashboard, name='learningdashboard'),
+ 
+   path('chat/', chat_home, name='chat_home_root'),
+
 
 ]
 if settings.DEBUG:

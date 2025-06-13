@@ -72,7 +72,7 @@ def student_dashboard(request):
             progress = (completed / total) * 100 if total else 0
 
             # Award all badges for current and previous weeks in this course
-            badges_to_award = Badge.objects.filter(module__course=course, module__week__lte=module.week)
+            badges_to_award = Badge.objects.filter(week__lte=module.week)
             for badge in badges_to_award:
                 StudentBadge.objects.get_or_create(student=user, badge=badge)
 
@@ -189,4 +189,10 @@ def module_view(request):
     }
 
     return render(request, 'learning/module.html', context)
+
+from review.models import HelpRequest  # adjust this to your actual model name
+
+def chat_home(request):
+    help_requests = HelpRequest.objects.all()  # or filter by user if needed
+    return render(request, 'learning/chat_home.html', {'help_requests': help_requests})
 

@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'progress_tracker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydb',         
+        'NAME': 'mydbs',         
         'USER': 'postgres',         
         'PASSWORD': 'neeha123',   
         'HOST': 'localhost',

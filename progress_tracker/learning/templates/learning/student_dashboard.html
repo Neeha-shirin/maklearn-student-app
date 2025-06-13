@@ -31,10 +31,12 @@
                     </div>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
-                    <a href="/chat" class="relative p-2 text-indigo-200 hover:text-white">
-                        <i class="fas fa-comment-dots text-xl"></i>
-                        <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                    </a>
+                     <a href="{% url 'chat_home' %}" class="relative p-2 text-indigo-200 hover:text-white">
+                       <i class="fas fa-comment-dots text-xl"></i>
+                          <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                      </a>
+
+
                     <div class="flex items-center">
                         <img class="h-8 w-8 rounded-full" src="{{ student.s_profilepicture.url }}" alt="">
                         <span class="ml-2 text-sm font-medium">{{  student.s_email }} </span>
@@ -131,7 +133,6 @@
                                 {% endif %}
                                 <div>
                                     <strong>{{ student_badge.badge.name }}</strong><br>
-                                    <small>Awarded for {{ student_badge.badge.module.name }}</small>
                                 </div>
                             </li>
                         {% endfor %}

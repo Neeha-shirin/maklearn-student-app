@@ -79,16 +79,16 @@ class StudentCurrentModule(models.Model):
 # -------------------------
 # BADGE SYSTEM
 # -------------------------
+# models.py
 class Badge(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="badges")
     image = models.ImageField(upload_to='badge_images/', null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="badges", null=True, blank=True)
-
+    week = models.PositiveIntegerField(null=True, blank=True)  # e.g., Week 1, 2, 3...
 
     def __str__(self):
-        return f"{self.name} (Week {self.module.week})"
+        return f"{self.name} (Week {self.week})"
+
 
 
 class StudentBadge(models.Model):
