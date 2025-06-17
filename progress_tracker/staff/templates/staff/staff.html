@@ -255,6 +255,17 @@
         <p class="text-gray-500 text-center">No pending help requests.</p>
         {% endfor %}
       </div>
+      <h2 class="text-xl font-semibold mb-4 mt-8">Handled Help Requests</h2>
+{% for request in handled_requests %}
+  <div class="p-4 bg-gray-100 border-l-4 border-green-500 rounded mb-2">
+    <p><strong>{{ request.student_profile.s_firstname }} {{ request.student_profile.s_lastname }}</strong> request ({{ request.get_request_type_display }}) was <span class="text-green-600 font-semibold">handled</span>.</p>
+    <p>{{ request.message }}</p>
+    <p class="text-sm text-gray-600">Accepted by {{ request.accepted_by.username }}</p>
+  </div>
+{% empty %}
+  <p class="text-gray-500">No handled requests yet.</p>
+{% endfor %}
+
     </div>
   </div>
 

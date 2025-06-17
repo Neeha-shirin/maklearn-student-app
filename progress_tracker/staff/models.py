@@ -4,7 +4,7 @@ from learning.models import Task,Course
 
 class StudentTaskProgress(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    student = models.ForeignKey(User, on_delete=models.CASCADE)  # link to User model
+    student = models.ForeignKey(User, on_delete=models.CASCADE)  
     is_completed = models.BooleanField(default=False)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
 

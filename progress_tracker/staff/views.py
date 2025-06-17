@@ -74,17 +74,23 @@ def staff_dashboard_view(request):
             'student_profile': student_profile,
         })
 
-    # Fetch help requests, counts, teacher, etc. as before...
+
 
     help_requests = HelpRequest.objects.select_related('student', 'accepted_by').filter(is_handled=False).order_by('-created_at')
     
+    handled_requests = HelpRequest.objects.select_related('student', 'accepted_by').filter(is_handled=True).order_by('-created_at')
+
     for request_obj in help_requests:
          try:
             request_obj.student_profile = dbstudent1.objects.get(s_email=request_obj.student.email)
          except dbstudent1.DoesNotExist:
             request_obj.student_profile = None
 
-
+    for request_obj in handled_requests:
+         try:
+            request_obj.student_profile = dbstudent1.objects.get(s_email=request_obj.student.email)
+         except dbstudent1.DoesNotExist:
+            request_obj.student_profile = None
 
 
     return render(request, 'staff/staff.html', {
@@ -92,6 +98,7 @@ def staff_dashboard_view(request):
         'all_courses': Course.objects.all(),
         'teacher': dbteacher1.objects.filter(t_email=request.user.username).first(),
         'help_requests': help_requests,
+        'handled_requests': handled_requests,
         'urgent_count': HelpRequest.objects.filter(request_type='urgent_review', is_handled=False).count(),
         'doubt_count': HelpRequest.objects.filter(request_type='doubt_session', is_handled=False).count(),
         'report_count': HelpRequest.objects.filter(request_type='report_issue', is_handled=False).count(),
@@ -138,7 +145,6 @@ def mark_request_handled(request, request_id):
 def approve_next_week(request, student_id):
     student = get_object_or_404(User, id=student_id, is_staff=False)
 
-    # Get student's course(s) - assuming one course per student_profile
     try:
         student_profile = dbstudent1.objects.get(s_email=student.email)
         course = student_profile.course
@@ -146,7 +152,7 @@ def approve_next_week(request, student_id):
         messages.error(request, "Student profile or course not found.")
         return redirect('staff_dashboard')
 
-    # Get modules only for that course, ordered by week
+    
     modules = list(Module.objects.filter(course=course).order_by('week'))
     student_module_obj, created = StudentCurrentModule.objects.get_or_create(student=student, course=course)
 
@@ -195,7 +201,7 @@ def student_module_progress(request, student_id):
         messages.error(request, "Student profile or course not found.")
         return redirect('staff_dashboard')
 
-    # 🔎 Get current module for the student
+    #  Get current module for the student
     current_module_obj = StudentCurrentModule.objects.filter(student=student, course=course).first()
 
     if not current_module_obj or not current_module_obj.module:
@@ -204,7 +210,7 @@ def student_module_progress(request, student_id):
 
     current_module = current_module_obj.module
 
-    # ✅ Get only tasks from the current module
+    # Get only tasks from the current module
     tasks = Task.objects.filter(module=current_module)
 
     task_progress = []
@@ -226,4 +232,4 @@ def student_module_progress(request, student_id):
 
 def stafflogout(request):
     logout(request)
-    return redirect('teacherlogin')  # Redirects to login.html
+    return redirect('teacherlogin')  
