@@ -234,7 +234,7 @@
               <p class="text-sm text-gray-600">ID: {{ request.student.id }}</p>
               <p class="text-sm text-gray-600">{{ request.get_request_type_display }} Request</p>
               <div class="mt-2 text-sm text-gray-500">
-                <i class="far fa-clock mr-1"></i> {{ request.created_at|date:"M d, Y H:i" }}
+                <i class="far fa-clock mr-1"></i> {{ request.created_at|date:"M d, Y " }}
               </div>
               {% if request.accepted_by %}
               <div class="mt-1 text-sm text-green-700 font-semibold">
