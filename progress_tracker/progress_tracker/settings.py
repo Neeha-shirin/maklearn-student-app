@@ -143,7 +143,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "makbiglearn@gmail.com"
-EMAIL_HOST_PASSWORD = "ngrd dpau wjan ypcg"  # Must be Google App Password!
+
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ADMIN_EMAIL = "makbiglearn@gmail.com"
 
